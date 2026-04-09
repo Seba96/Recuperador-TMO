@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Library JSON to CSV Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        input[type='file'] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manga Library JSON to CSV Converter</h1>
+    <input type="file" id="jsonFileInput" accept="application/json">
+    <button id="convertButton">Convert</button>
+    <pre id="output"></pre>
+    <script>
+        document.getElementById('convertButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('jsonFileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please upload a JSON file.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const json = JSON.parse(event.target.result);
+                const csv = jsonToCsv(json);
+                document.getElementById('output').innerText = csv;
+            };
+            reader.readAsText(file);
+        });
+        function jsonToCsv(json) {
+            const keys = Object.keys(json[0]);
+            const rows = [keys.join(',')];
+            json.forEach(item => {
+                const values = keys.map(key => item[key]);
+                rows.push(values.join(','));
+            });
+            return rows.join('\n');
+        }
+    </script>
+</body>
+</html>
