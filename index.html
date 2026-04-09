@@ -1,151 +1,18 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unir Bibliotecas TMO - JSON a CSV</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-    h1 { text-align: center; }
-    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    button { padding: 10px 15px; margin: 5px; font-size: 16px; cursor: pointer; }
-    input[type="file"] { margin: 10px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #007bff; color: white; }
-    .estado-select { width: 100%; }
-    .mensaje { margin: 15px 0; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Unir Bibliotecas de Manga (JSON → CSV)</h1>
-    <p>Seleccioná uno o varios archivos JSON que exportaste del respaldo de TMO.</p>
+    <script>
+        const jsonObjects = [{numero: 1, titulo: 'Title 1', categoria: 'Category A'}, {numero: 2, titulo: 'Title 2', categoria: 'Category B'}];
 
-    <input type="file" id="fileInput" multiple accept=".json">
-    <br><br>
-    <button onclick="procesarArchivos()">Cargar y Unir JSONs</button>
-    <button onclick="descargarCSV()">Descargar como CSV</button>
-
-    <div id="mensaje" class="mensaje" style="display:none;"></div>
-
-    <table id="tabla">
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Estado</th>
-          <th>Último Cap</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <script>
-    let todosLosMangas = [];
-
-    function procesarArchivos() {
-      const files = document.getElementById('fileInput').files;
-      if (files.length === 0) {
-        alert("Por favor seleccioná al menos un archivo JSON");
-        return;
-      }
-
-      todosLosMangas = [];
-      let procesados = 0;
-
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            const data = JSON.parse(e.target.result);
-            
-            // Detectar diferentes estructuras posibles
-            let mangas = [];
-            if (data.mangas && Array.isArray(data.mangas)) {
-              mangas = data.mangas;
-            } else if (Array.isArray(data)) {
-              mangas = data;
-            } else if (data.titulos && Array.isArray(data.titulos)) {
-              mangas = data.titulos.map(t => ({titulo: t}));
-            }
-
-            mangas.forEach(m => {
-              const titulo = m.titulo || m.title || m.nombre || "Sin título";
-              todosLosMangas.push({
-                titulo: titulo.trim(),
-                estado: "Siguiendo",     // valor por defecto
-                ultimoCap: ""            // vacío para que completes
-              });
-            });
-
-            procesados++;
-            if (procesados === files.length) {
-              mostrarTabla();
-              document.getElementById('mensaje').innerHTML = `�� Se cargaron ${todosLosMangas.length} mangas de ${files.length} archivo(s).`;
-              document.getElementById('mensaje').style.display = 'block';
-            }
-          } catch(err) {
-            alert("Error al leer el archivo: " + file.name + "\n" + err.message);
-          }
-        };
-        reader.readAsText(file);
-      });
-    }
-
-    function mostrarTabla() {
-      const tbody = document.querySelector('#tabla tbody');
-      tbody.innerHTML = '';
-
-      todosLosMangas.forEach((manga, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${manga.titulo}</td>
-          <td>
-            <select class="estado-select" onchange="actualizarEstado(${index}, this.value)">
-              <option value="Siguiendo" ${manga.estado === "Siguiendo" ? "selected" : ""}>Siguiendo</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="Finalizado">Finalizado</option>
-              <option value="En espera">En espera</option>
-              <option value="Abandonado">Abandonado</option>
-              <option value="Pausado">Pausado</option>
-            </select>
-          </td>
-          <td><input type="text" value="${manga.ultimoCap}" onchange="actualizarCap(${index}, this.value)" style="width:100%;"></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function actualizarEstado(index, valor) {
-      todosLosMangas[index].estado = valor;
-    }
-
-    function actualizarCap(index, valor) {
-      todosLosMangas[index].ultimoCap = valor;
-    }
-
-    function descargarCSV() {
-      if (todosLosMangas.length === 0) {
-        alert("Primero cargá los archivos JSON");
-        return;
-      }
-
-      let csv = "Titulo,Estado,Ultimo Cap\n";
-
-      todosLosMangas.forEach(m => {
-        const tituloLimpio = m.titulo.replace(/"/g, '""'); // escapar comillas
-        csv += `"${tituloLimpio}",${m.estado},"${m.ultimoCap}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `biblioteca_manga_${new Date().toISOString().slice(0,10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-  </script>
+        jsonObjects.forEach(item => {
+            const categoria = item.categoria; // Extracts categoria from the JSON object
+            console.log(categoria); // Example action with the categoria value
+        });
+    </script>
 </body>
 </html>
