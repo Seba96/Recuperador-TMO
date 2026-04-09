@@ -15,10 +15,111 @@
     th { background: #007bff; color: white; }
     .estado-select { width: 100%; }
     .mensaje { margin: 15px 0; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; }
+
+    /* Botón principal */
+    .btn-instrucciones {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      margin-bottom: 24px;
+      font-size: 20px;
+      font-weight: bold;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+    .btn-instrucciones:hover { background: #0056b3; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 10px;
+      padding: 28px;
+      max-width: 700px;
+      width: 100%;
+      margin: auto;
+      position: relative;
+    }
+    .modal h2 { margin-top: 0; color: #007bff; font-size: 22px; }
+    .modal ol { padding-left: 20px; line-height: 1.8; }
+    .modal ol li { margin-bottom: 10px; font-size: 15px; }
+    .modal-close {
+      position: absolute;
+      top: 12px; right: 16px;
+      font-size: 22px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #555;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #000; }
+
+    /* Tabs de categorías */
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+    .tab-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      border: 1px solid #007bff;
+      background: white;
+      color: #007bff;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover { background: #007bff; color: white; }
+
+    /* Bloque de código */
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-top: 10px;
+      white-space: pre;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      background: #444;
+      color: #eee;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #666; }
+    .copy-btn.copiado { background: #28a745; color: white; }
   </style>
 </head>
 <body>
   <div class="container">
+
+    <!-- Botón grande arriba -->
+    <button class="btn-instrucciones" onclick="abrirModal()">📖 ¿Cómo guardar tu biblioteca?</button>
+
     <h1>Unir Bibliotecas de Manga (JSON → CSV)</h1>
     <p>Seleccioná uno o varios archivos JSON que exportaste del respaldo de TMO.</p>
 
@@ -41,7 +142,143 @@
     </table>
   </div>
 
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="cerrarModalFuera(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="cerrarModal()" title="Cerrar">&times;</button>
+      <h2>📖 Cómo guardar tu biblioteca de TMO</h2>
+      <ol>
+        <li>
+          Logueate en la página de respaldo:
+          <a href="https://nakamasweb.com" target="_blank" rel="noopener">nakamasweb.com</a>
+        </li>
+        <li>
+          Entrá a tu perfil, elegí una categoría y asegurate de darle al botón <strong>"Mostrar completados"</strong>.
+        </li>
+        <li>
+          Abrí la consola del navegador con <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd>
+          (o <kbd>F12</kbd>) y andá a la pestaña <strong>Consola</strong>.
+        </li>
+        <li>
+          Elegí la categoría para la que vas a exportar y pegá el siguiente script:
+
+          <!-- Tabs -->
+          <div class="tabs" id="categoriaTabs">
+            <button class="tab-btn active" onclick="cambiarCategoria(this, 'Completados')">Completados</button>
+            <button class="tab-btn" onclick="cambiarCategoria(this, 'Pendiente')">Pendiente</button>
+            <button class="tab-btn" onclick="cambiarCategoria(this, 'Favoritos')">Favoritos</button>
+            <button class="tab-btn" onclick="cambiarCategoria(this, 'Siguiendo')">Siguiendo</button>
+            <button class="tab-btn" onclick="cambiarCategoria(this, 'Lo tengo')">Lo tengo</button>
+            <button class="tab-btn" onclick="cambiarCategoria(this, 'Abandonado')">Abandonado</button>
+          </div>
+
+          <div style="position:relative;">
+            <div class="code-block" id="codeBlock"></div>
+            <button class="copy-btn" id="copyBtn" onclick="copiarCodigo()">Copiar</button>
+          </div>
+        </li>
+        <li>
+          Si tenés más de una página en esa categoría, navegá a la siguiente y repetí el paso anterior.
+        </li>
+        <li>
+          Una vez que tenés los archivos JSON de todas tus páginas y categorías, <strong>subílos acá</strong> y descargá tu CSV unificado.
+        </li>
+      </ol>
+      <div style="text-align:right; margin-top:16px;">
+        <button onclick="cerrarModal()" style="background:#007bff; color:white; border:none; padding:10px 24px; border-radius:6px; font-size:15px; cursor:pointer;">Entendido</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /* ---- Script base por categoría ---- */
+    function generarScript(categoria) {
+      return `// === SCRIPT PARA EXPORTAR BIBLIOTECA A JSON ===
+// Ejecutalo después de cargar la página de tu lista
+
+setTimeout(() => {
+  const titulos = Array.from(document.querySelectorAll(
+    'h3, h4, .title, .manga-title, .card-title, .series-title, a[href*="/manga/"]'
+  ))
+    .map(el => el.textContent.trim())
+    .filter(t =>
+      t.length > 4
+      && !t.includes("Sitio")
+      && !t.includes("Explorar")
+      && !t.includes("Contenidos")
+      && !t.includes("Inicio")
+      && !t.includes("Perfil")
+    );
+
+  const bibliotecaJSON = {
+    "exportado_el": new Date().toISOString(),
+    "total_titulos": titulos.length,
+    "fuente": "respaldo TMO",
+    "mangas": titulos.map((titulo, i) => ({
+      "numero": i + 1,
+      "titulo": titulo,
+      "categoria": "${categoria}"
+    }))
+  };
+
+  const jsonStr = JSON.stringify(bibliotecaJSON, null, 2);
+
+  console.log("=== TÍTULOS ENCONTRADOS ===");
+  console.log(titulos.join('\\n'));
+  console.log(\`\\nTotal: \${titulos.length} mangas\`);
+  console.log("\\n=== JSON LISTO ===");
+  console.log(jsonStr);
+
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = \`mi-biblioteca-tmo_${categoria.toLowerCase().replace(/ /g,'-')}_\${new Date().toISOString().slice(0,10)}.json\`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  console.log("✅ Archivo JSON descargado automáticamente!");
+}, 2000);`;
+    }
+
+    let categoriaActual = 'Completados';
+
+    function cambiarCategoria(btn, categoria) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      categoriaActual = categoria;
+      document.getElementById('codeBlock').textContent = generarScript(categoria);
+      document.getElementById('copyBtn').textContent = 'Copiar';
+      document.getElementById('copyBtn').classList.remove('copiado');
+    }
+
+    function copiarCodigo() {
+      const code = document.getElementById('codeBlock').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('copiado');
+        setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copiado'); }, 2000);
+      });
+    }
+
+    function abrirModal() {
+      document.getElementById('codeBlock').textContent = generarScript(categoriaActual);
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function cerrarModalFuera(e) {
+      if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+    }
+
+    /* ---- Lógica original ---- */
     let todosLosMangas = [];
 
     function procesarArchivos() {
@@ -59,8 +296,6 @@
         reader.onload = function(e) {
           try {
             const data = JSON.parse(e.target.result);
-            
-            // Detectar diferentes estructuras posibles
             let mangas = [];
             if (data.mangas && Array.isArray(data.mangas)) {
               mangas = data.mangas;
@@ -83,7 +318,7 @@
             procesados++;
             if (procesados === files.length) {
               mostrarTabla();
-              document.getElementById('mensaje').innerHTML = `�� Se cargaron ${todosLosMangas.length} mangas de ${files.length} archivo(s).`;
+              document.getElementById('mensaje').innerHTML = `✅ Se cargaron ${todosLosMangas.length} mangas de ${files.length} archivo(s).`;
               document.getElementById('mensaje').style.display = 'block';
             }
           } catch(err) {
@@ -97,8 +332,6 @@
     function mostrarTabla() {
       const tbody = document.querySelector('#tabla tbody');
       tbody.innerHTML = '';
-
-      // Obtener todas las categorías únicas del JSON
       const categoriasUnicas = [...new Set(todosLosMangas.map(m => m.categoria))];
 
       todosLosMangas.forEach((manga, index) => {
@@ -131,11 +364,10 @@
       }
 
       let csv = "Titulo,Categoria,Ultimo Cap\n";
-
       todosLosMangas.forEach(m => {
         const tituloLimpio = m.titulo.replace(/"/g, '""');
         const categoriaLimpia = m.categoria.replace(/"/g, '""');
-        csv += `"${tituloLimpio}","${categoriaLimpia},"${m.ultimoCap}\n`;
+        csv += `"${tituloLimpio}","${categoriaLimpia}","${m.ultimoCap}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
